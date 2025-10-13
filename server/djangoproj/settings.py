@@ -31,7 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'tu-dominio-lab.proxy.cognitiveclass.ai'
+    'https://abreu760-8000.theianext-0-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai'
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://abreu760-8000.theianext-0-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai'
