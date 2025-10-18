@@ -1,6 +1,14 @@
 from .models import CarMake, CarModel
 
 def initiate():
+    # Remove existing seed data so this can be run repeatedly during development
+    try:
+        CarModel.objects.all().delete()
+        CarMake.objects.all().delete()
+    except Exception:
+        # If models/tables don't exist yet (migrations not run), ignore
+        pass
+
     car_make_data = [
         {"name":"NISSAN", "description":"Great cars. Japanese technology"},
         {"name":"Mercedes", "description":"Great cars. German technology"},
@@ -29,4 +37,5 @@ def initiate():
         {"name":"Kluger", "type":"SUV", "year": 2023, "car_make":car_make_instances[4]},
     ]
     for data in car_model_data:
-        CarModel.objects.create(name=data['name'], car_make=data['car_make'], type=data['type'], year=data['year'])
+        # Provide a default dealer_id (0) for seeded car models to satisfy NOT NULL constraint
+        CarModel.objects.create(name=data['name'], car_make=data['car_make'], type=data['type'], year=data['year'], dealer_id=0)

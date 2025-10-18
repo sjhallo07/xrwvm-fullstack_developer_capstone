@@ -103,6 +103,8 @@ def get_dealerships(request, state="All"):
     else:
         endpoint = "/fetchDealers/"+state
     dealerships = get_request(endpoint)
+    if dealerships is None:
+        return JsonResponse({"status":502, "message":"Backend service unavailable"}, status=502)
     return JsonResponse({"status":200,"dealers":dealerships})
 # ...
 
@@ -112,11 +114,27 @@ def get_dealer_reviews(request, dealer_id):
     if(dealer_id):
         endpoint = "/fetchReviews/dealer/"+str(dealer_id)
         reviews = get_request(endpoint)
+        if reviews is None:
+            return JsonResponse({"status":502, "message":"Reviews service unavailable"}, status=502)
+        # Ensure reviews is iterable
+        safe_reviews = []
         for review_detail in reviews:
-            response = analyze_review_sentiments(review_detail['review'])
-            print(response)
-            review_detail['sentiment'] = response['sentiment']
-        return JsonResponse({"status":200,"reviews":reviews})
+            try:
+                text = review_detail.get('review', '') if isinstance(review_detail, dict) else ''
+                response = analyze_review_sentiments(text)
+                sentiment = None
+                if isinstance(response, dict):
+                    sentiment = response.get('sentiment', 'neutral')
+                else:
+                    sentiment = 'neutral'
+                # attach sentiment
+                if isinstance(review_detail, dict):
+                    review_detail['sentiment'] = sentiment
+                    safe_reviews.append(review_detail)
+            except Exception as err:
+                # skip malformed review entries but continue
+                print(f"Error processing review detail: {err}")
+        return JsonResponse({"status":200,"reviews":safe_reviews})
     else:
         return JsonResponse({"status":400,"message":"Bad Request"})
 # ...
@@ -126,6 +144,8 @@ def get_dealer_details(request, dealer_id):
     if(dealer_id):
         endpoint = "/fetchDealer/"+str(dealer_id)
         dealership = get_request(endpoint)
+        if dealership is None:
+            return JsonResponse({"status":502, "message":"Dealer service unavailable"}, status=502)
         return JsonResponse({"status":200,"dealer":dealership})
     else:
         return JsonResponse({"status":400,"message":"Bad Request"})
@@ -135,11 +155,11 @@ def get_dealer_details(request, dealer_id):
 def add_review(request):
     if(request.user.is_anonymous == False):
         data = json.loads(request.body)
-        try:
-            response = post_review(data)
+        response = post_review(data)
+        if response:
             return JsonResponse({"status":200})
-        except:
-            return JsonResponse({"status":401,"message":"Error in posting review"})
+        else:
+            return JsonResponse({"status":502, "message":"Error in posting review"}, status=502)
     else:
         return JsonResponse({"status":403,"message":"Unauthorized"})
 # ...

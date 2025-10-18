@@ -1,0 +1,46 @@
+
+> usermgmt@0.1.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Compiled with warnings.
+
+Warning
+(6:27710) autoprefixer: Replace color-adjust to print-color-adjust. The color-adjust shorthand is currently deprecated.
+
+[eslint] 
+src\components\Dealers\Dealer.jsx
+  Line 67:5:  React Hook useEffect has missing dependencies: 'get_dealer', 'get_reviews', and 'post_review'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src\components\Dealers\Dealers.jsx
+  Line 47:5:  React Hook useEffect has a missing dependency: 'get_dealers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\components\Dealers\PostReview.jsx
+  Line 91:5:  React Hook useEffect has missing dependencies: 'get_cars' and 'get_dealer'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+File sizes after gzip:
+
+  60.51 kB  build\static\js\main.28a54edb.js
+  23.94 kB  build\static\css\main.d9716fdc.css
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+
