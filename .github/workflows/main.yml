@@ -116,7 +116,6 @@ jobs:
       - name: Run tests (if available)
         working-directory: ./server/database
         run: npm test || echo "No tests specified yet"
-        continue-on-error: true
 
   test_python:
     name: Test Python Django App
