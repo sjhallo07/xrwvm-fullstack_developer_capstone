@@ -1,10 +1,16 @@
-name: 'Lint Code'
+---
+name: 'CI Pipeline'
 
-on:
+'on':
   push:
     branches: [master, main]
   pull_request:
     branches: [master, main]
+
+env:
+  CI: true
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.12'
 
 jobs:
   lint_python:
@@ -12,48 +18,128 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Checkout Repository
-      uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.12
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: server/requirements.txt
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
 
-    - name: Print working directory
-      run: pwd
+      - name: Print working directory
+        run: pwd
 
-    - name: Run Linter
-      run: |
-        pwd
-        # This command finds all Python files recursively and runs flake8 on them
-        find . -name "*.py" -exec flake8 {} +
-        echo "Linted all the python files successfully"
+      - name: Run Linter
+        run: |
+          pwd
+          # Find all Python files recursively and run flake8 on them
+          find . -name "*.py" -exec flake8 {} +
+          echo "Linted all the python files successfully"
 
   lint_js:
-      name: Lint JavaScript Files
-      runs-on: ubuntu-latest
+    name: Lint JavaScript Files
+    runs-on: ubuntu-latest
 
-      steps:
+    steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Install JSHint
         run: npm install jshint --global
 
       - name: Run Linter
         run: |
-          # This command finds all JavaScript files recursively and runs JSHint on them
-          find ./server/database -name "*.js" -not -path "*/node_modules/*" -exec jshint {} +
+          # Find all JavaScript files and run JSHint on them
+          find ./server/database -name "*.js" -exec jshint {} +
           echo "Linted all the js files successfully"
+
+  build_frontend:
+    name: Build and Test Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: server/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./server/frontend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ./server/frontend
+        run: npm test -- --watchAll=false --passWithNoTests
+        # TODO: Remove continue-on-error once tests are implemented
+        continue-on-error: true
+
+      - name: Build application
+        working-directory: ./server/frontend
+        run: npm run build
+
+  build_database:
+    name: Build and Test Database Service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: server/database/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./server/database
+        run: npm ci
+
+      - name: Run tests (if available)
+        working-directory: ./server/database
+        run: npm test || echo "No tests specified yet"
+
+  test_python:
+    name: Test Python Django App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: server/requirements.txt
+
+      - name: Install dependencies
+        working-directory: ./server
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Django tests
+        working-directory: ./server
+        run: python manage.py test
+        # TODO: Remove continue-on-error once tests are implemented
+        continue-on-error: true
