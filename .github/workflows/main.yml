@@ -26,6 +26,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+          cache-dependency-path: server/requirements.txt
 
       - name: Install dependencies
         run: |
