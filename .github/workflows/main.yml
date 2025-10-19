@@ -142,4 +142,5 @@ jobs:
       - name: Run Django tests
         working-directory: ./server
         run: python manage.py test
+        # TODO: Remove continue-on-error once tests are implemented
         continue-on-error: true
