@@ -69,27 +69,35 @@ const PostReview = () => {
     }
   }
 
-  const get_dealer = async ()=>{
-    const res = await fetch(dealer_url, { method: "GET" });
-    const retobj = await res.json();
-    if(retobj.status === 200) {
-      let dealerobjs = Array.from(retobj.dealer)
-      if(dealerobjs.length > 0)
-        setDealer(dealerobjs[0])
-    }
-  }
-
-  const get_cars = async ()=>{
-    const res = await fetch(carmodels_url, { method: "GET" });
-    const retobj = await res.json();
-    let carmodelsarr = Array.from(retobj.CarModels || []);
-    setCarmodels(carmodelsarr);
-  }
-
   useEffect(() => {
-    get_dealer();
-    get_cars();
-  },[]);
+    const fetchDealer = async () => {
+      try {
+        const res = await fetch(dealer_url, { method: "GET" });
+        const retobj = await res.json();
+        if(retobj.status === 200) {
+          let dealerobjs = Array.from(retobj.dealer || []);
+          if(dealerobjs.length > 0)
+            setDealer(dealerobjs[0]);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const fetchCars = async () => {
+      try {
+        const res = await fetch(carmodels_url, { method: "GET" });
+        const retobj = await res.json();
+        let carmodelsarr = Array.from(retobj.CarModels || []);
+        setCarmodels(carmodelsarr);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchDealer();
+    fetchCars();
+  }, [dealer_url, carmodels_url]);
 
   const isSubmitDisabled = !model || !review || !date || !year;
 
@@ -100,7 +108,7 @@ const PostReview = () => {
         <h1 style={{color:"darkblue", marginBottom:8}}>{dealer.full_name || 'Dealer'}</h1>
 
         <label htmlFor="review" style={{display:'block', marginBottom:6}}>Your review</label>
-        <textarea id='review' cols='60' rows='6' placeholder='Write your review here' value={review} onChange={(e) => setReview(e.target.value)} style={{width:'100%', padding:8, marginBottom:12}} />
+        <textarea id='review' cols='60' rows='6' placeholder='Write your review here' value={review} onChange={(e) => setReview(e.target.value)} style={{width:'100%', padding:8, marginBottom:12}}></textarea>
 
         <div className='input_field' style={{marginBottom:12}}>
           <label style={{marginRight:8}}>Purchase Date</label>
