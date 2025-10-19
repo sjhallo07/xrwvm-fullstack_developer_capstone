@@ -87,6 +87,7 @@ jobs:
       - name: Run tests
         working-directory: ./server/frontend
         run: npm test -- --watchAll=false --passWithNoTests
+        # TODO: Remove continue-on-error once tests are implemented
         continue-on-error: true
 
       - name: Build application
