@@ -1,9 +1,12 @@
 import requests
+import logging
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseServerError
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from requests.utils import requote_uri
+
+logger = logging.getLogger(__name__)
 
 DEALERS_SERVICE = getattr(settings, "DEALERS_SERVICE_URL", "http://express-service:3000")
 SENTIMENT_SERVICE = getattr(settings, "SENTIMENT_SERVICE_URL", "http://sentiment:8080")
@@ -15,7 +18,8 @@ def fetch_dealers(request):
         r.raise_for_status()
         return JsonResponse(r.json(), safe=False)
     except requests.RequestException as e:
-        return HttpResponseServerError(f"Error fetching dealers: {e}")
+        logger.error("Error fetching dealers: %s", e)
+        return HttpResponseServerError("Error fetching dealers")
 
 @require_GET
 def fetch_dealer_by_id(request, dealer_id):
@@ -24,7 +28,8 @@ def fetch_dealer_by_id(request, dealer_id):
         r.raise_for_status()
         return JsonResponse(r.json(), safe=False)
     except requests.RequestException as e:
-        return HttpResponseServerError(f"Error fetching dealer: {e}")
+        logger.error("Error fetching dealer %s: %s", dealer_id, e)
+        return HttpResponseServerError("Error fetching dealer")
 
 @require_GET
 def fetch_reviews_for_dealer(request, dealer_id):
@@ -43,7 +48,8 @@ def fetch_reviews_for_dealer(request, dealer_id):
                     rev["_sentiment"] = {"error": "sentiment-unavailable"}
         return JsonResponse(reviews, safe=False)
     except requests.RequestException as e:
-        return HttpResponseServerError(f"Error fetching reviews: {e}")
+        logger.error("Error fetching reviews for dealer %s: %s", dealer_id, e)
+        return HttpResponseServerError("Error fetching reviews")
 
 @csrf_exempt
 @require_POST
@@ -54,4 +60,5 @@ def insert_review(request):
         r.raise_for_status()
         return JsonResponse(r.json(), safe=False, status=r.status_code)
     except requests.RequestException as e:
-        return HttpResponseServerError(f"Error inserting review: {e}")
+        logger.error("Error inserting review: %s", e)
+        return HttpResponseServerError("Error inserting review")
