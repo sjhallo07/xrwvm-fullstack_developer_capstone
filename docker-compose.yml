@@ -19,19 +19,20 @@ services:
       - "3000:3000"
 
   sentiment:
-    # Placeholder service: si no tienes una imagen, puedes usar una imagen simple
-    # que devuelva {"sentiment":"neutral"} en /analyze/:text. Reemplaza con tu imagen.
+    # Placeholder image; replace with your sentiment service image or build path
     image: your-sentiment-image-or-placeholder
+    # If you have a local Dockerfile for sentiment, replace the image line with:
+    # build: ./server/djangoapp/microservices/sentiment
     ports:
       - "8080:8080"
 
   django:
-    build: .
+    build: ./server/djangoapp/microservices
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - .:/app:cached
+      - ./server/djangoapp/microservices:/app:cached
     environment:
       - DJANGO_SETTINGS_MODULE=project.settings
       - DEALERS_SERVICE_URL=http://express-service:3000
