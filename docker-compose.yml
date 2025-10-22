@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+  # MongoDB service
+  mongo_db:
+    container_name: dealerships_db
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+
+  # Express/Node API service (server)
+  express_service:
+    container_name: express_api
+    build:
+      context: ./server/database
+      dockerfile: Dockerfile
+    ports:
+      - "3030:3030"
+    depends_on:
+      - mongo_db
+    environment:
+      - MONGO_URI=mongodb://mongo_db:27017/
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Placeholder sentiment analysis service
+  # NOTE: This is a placeholder image and must be replaced or implemented by the maintainer
+  sentiment_service:
+    container_name: sentiment_analyzer
+    image: alpine:latest  # Placeholder - replace with actual sentiment service image
+    command: sh -c "echo 'Sentiment service placeholder - not implemented' && tail -f /dev/null"
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Django backend service
+  django_backend:
+    container_name: django_app
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo_db
+      - express_service
+    environment:
+      - DATABASE_URL=sqlite:///db.sqlite3
+      - DJANGO_SETTINGS_MODULE=djangoproj.settings
+    volumes:
+      - ./server:/app
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
