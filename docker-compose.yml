@@ -1,0 +1,79 @@
+version: '3.9'
+
+services:
+  # MongoDB service for dealership data
+  mongo_db:
+    container_name: db_container
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Node.js dealership API service
+  dealership_api:
+    build:
+      context: ./server/database
+      dockerfile: Dockerfile
+    container_name: dealership_api_container
+    ports:
+      - "3030:3030"
+    depends_on:
+      mongo_db:
+        condition: service_healthy
+    environment:
+      - MONGO_URL=mongodb://mongo_db:27017
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3030', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Sentiment analysis microservice
+  sentiment_analyzer:
+    build:
+      context: ./server/djangoapp/microservices
+      dockerfile: Dockerfile
+    container_name: sentiment_analyzer_container
+    ports:
+      - "8080:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Django backend service
+  django_backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: django_backend_container
+    ports:
+      - "8000:8000"
+    depends_on:
+      dealership_api:
+        condition: service_healthy
+      sentiment_analyzer:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=sqlite:///db.sqlite3
+      - DEALERSHIP_API_URL=http://dealership_api:3030
+      - SENTIMENT_ANALYZER_URL=http://sentiment_analyzer:5000
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data: {}
