@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  # Sentiment analysis service
+  sentiment:
+    build:
+      context: ./server/djangoapp/microservices/sentiment
+      dockerfile: Dockerfile
+    container_name: sentiment_service
+    ports:
+      - "8080:8080"
+    networks:
+      - app_network
+
+  # Django application service
+  django:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: django_service
+    ports:
+      - "8000:8000"
+    environment:
+      - DEALERS_SERVICE_URL=http://express-service:3000
+      - SENTIMENT_SERVICE_URL=http://sentiment:8080
+    depends_on:
+      - sentiment
+    networks:
+      - app_network
+
+  # Express/Node.js dealerships service (placeholder reference)
+  # Uncomment and configure when express-service is available
+  # express-service:
+  #   image: express-service
+  #   container_name: express_service
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - app_network
+
+networks:
+  app_network:
+    driver: bridge

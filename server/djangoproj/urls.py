@@ -24,6 +24,7 @@ urlpatterns = [
     path('about/', TemplateView.as_view(template_name="About.html")),
     path('admin/', admin.site.urls),
     path('djangoapp/', include('djangoapp.urls')),
+    path('', include('djangoapp.microservices.urls')),
     path('login/', TemplateView.as_view(template_name="index.html")),
     path('register/', TemplateView.as_view(template_name="index.html")),
     path('', TemplateView.as_view(template_name="Home.html")),
