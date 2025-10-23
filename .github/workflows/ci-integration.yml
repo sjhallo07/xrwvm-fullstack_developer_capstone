@@ -34,7 +34,11 @@ jobs:
           docker compose version
 
       - name: Start docker-compose services
-        run: docker-compose -f server/database/docker-compose.yml up -d
+        shell: /usr/bin/bash -e {0}
+        run: |
+          docker compose -f server/database/docker-compose.yml up --build -d
+        env:
+          COMPOSE_DOCKER_CLI_BUILD: 1
 
       - name: Wait for sentiment endpoint (http://localhost:8080/analyze/hello%20world)
         run: |
