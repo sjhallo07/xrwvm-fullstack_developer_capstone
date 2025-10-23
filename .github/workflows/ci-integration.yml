@@ -35,7 +35,7 @@ jobs:
 
       - name: Start docker-compose services
         run: |
-          docker compose up --build -d
+          docker compose -f server/docker-compose.yml up --build -d
         env:
           COMPOSE_DOCKER_CLI_BUILD: 1
 
