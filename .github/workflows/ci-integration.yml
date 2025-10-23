@@ -33,6 +33,15 @@ jobs:
           docker version
           docker compose version
 
+      - name: Check Docker daemon
+        shell: /usr/bin/bash -e {0}
+        run: |
+          if ! docker info >/dev/null 2>&1; then
+            echo "ERROR: Docker daemon is not reachable. Ensure Docker Desktop is running on the runner/host and that the Docker daemon is available." >&2
+            docker version || true
+            exit 1
+          fi
+
       - name: Start docker-compose services
         shell: /usr/bin/bash -e {0}
         run: |
