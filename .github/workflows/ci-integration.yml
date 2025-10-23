@@ -36,7 +36,7 @@ jobs:
       - name: Start docker-compose services
         shell: /usr/bin/bash -e {0}
         run: |
-          docker compose -f path/to/your-compose-file.yml up --build -d
+          docker compose up --build -d
         env:
           COMPOSE_DOCKER_CLI_BUILD: 1
 
