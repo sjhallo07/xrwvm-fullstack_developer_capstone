@@ -38,7 +38,7 @@ const Dealers = () => {
       setStates(Array.from(new Set(statesArr)))
       setDealersList(all_dealers)
     }
-  }, []);
+  }, [dealer_url]);
 
   useEffect(() => {
     get_dealers();
